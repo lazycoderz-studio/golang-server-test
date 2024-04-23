@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"  # Assuming your application listens on port 8080
+    environment:
+      - GIN_MODE=release
+    volumes:
+      - .:/app
+      - go_cache:/root/.cache/go-build # caching the go build files
+volumes:
+  go_cache:
