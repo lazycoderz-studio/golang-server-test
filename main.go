@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	// Setup the HTTP server route
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Create a map to hold the response data
+	r := mux.NewRouter()
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		response := map[string]string{
 			"host":   r.Host,
 			"status": "success",
@@ -27,7 +28,7 @@ func main() {
 	})
 
 	// Start the HTTP server
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", r)
 	if err != nil {
 		log.Println("Error while running server:", err)
 	}
