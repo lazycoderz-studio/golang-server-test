@@ -6,7 +6,54 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
+
+const sendGridAPIKey = "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"
+
+type EmailRequest struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Text    string `json:"text"`
+	HTML    string `json:"html"`
+}
+
+func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
+	var emailReq EmailRequest
+	err := json.NewDecoder(r.Body).Decode(&emailReq)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	from := mail.NewEmail("Example Sender", emailReq.From)
+	to := mail.NewEmail("Example Receiver", emailReq.To)
+	message := mail.NewSingleEmail(from, emailReq.Subject, to, emailReq.Text, emailReq.HTML)
+	client := sendgrid.NewSendClient(sendGridAPIKey)
+	response, err := client.Send(message)
+	if err != nil {
+		http.Error(w, "Failed to send email", http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+
+	w.WriteHeader(response.StatusCode)
+	w.Write([]byte(response.Body))
+}
+
+func receiveMail(w http.ResponseWriter, r *http.Request) {
+	req := map[string]interface{}{}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	log.Println(req)
+}
 
 func main() {
 	r := mux.NewRouter()
@@ -27,6 +74,8 @@ func main() {
 		}
 	})
 
+	r.HandleFunc("/send-email", sendEmailHandler).Methods("POST")
+	r.HandleFunc("/receive-mail", receiveMail).Methods("POST")
 	// Start the HTTP server
 	err := http.ListenAndServe(":8090", r)
 	if err != nil {
