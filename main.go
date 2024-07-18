@@ -68,6 +68,7 @@ func receiveMail(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		log.Println("error in marshalling", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
