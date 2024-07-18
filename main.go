@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
-
-const sendGridAPIKey = "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"
 
 type EmailRequest struct {
 	From    string `json:"from"`
@@ -31,7 +30,7 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	from := mail.NewEmail("Example Sender", emailReq.From)
 	to := mail.NewEmail("Example Receiver", emailReq.To)
 	message := mail.NewSingleEmail(from, emailReq.Subject, to, emailReq.Text, emailReq.HTML)
-	client := sendgrid.NewSendClient(sendGridAPIKey)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	response, err := client.Send(message)
 	if err != nil {
 		http.Error(w, "Failed to send email", http.StatusInternalServerError)
