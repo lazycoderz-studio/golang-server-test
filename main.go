@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -38,12 +39,32 @@ func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(response.Headers["X-Message-Id"])
 	w.WriteHeader(response.StatusCode)
+	// w.WriteHeader(response.Headers["X-Message-Id"])
 	w.Write([]byte(response.Body))
 }
 
+type SendGridEvent struct {
+	Email       string   `json:"email"`
+	Timestamp   int64    `json:"timestamp"`
+	SMTPID      string   `json:"smtp-id"`
+	Event       string   `json:"event"`
+	Category    []string `json:"category,omitempty"`
+	SGEventID   string   `json:"sg_event_id"`
+	SGMessageID string   `json:"sg_message_id"`
+	Response    string   `json:"response,omitempty"`
+	Attempt     string   `json:"attempt,omitempty"`
+	UserAgent   string   `json:"useragent,omitempty"`
+	IP          string   `json:"ip,omitempty"`
+	URL         string   `json:"url,omitempty"`
+	Reason      string   `json:"reason,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	ASMGroupID  int      `json:"asm_group_id,omitempty"`
+}
+
 func receiveMail(w http.ResponseWriter, r *http.Request) {
-	req := map[string]interface{}{}
+	req := []SendGridEvent{}
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
